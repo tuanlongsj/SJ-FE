@@ -6,13 +6,13 @@ module.exports = (db) => {
 
   // Get all items
   router.get("/", (req, res) => {
-    // Generate a random sample item
-    const sample = {
-      name: "Sample Item " + Math.floor(Math.random() * 100000),
-      description: "This is a sample item for testing."
-    };
-    const item = createItem(sample);
-    db.get("items").push(item).write();
+    // // Generate a random sample item
+    // const sample = {
+    //   name: "Sample Item " + Math.floor(Math.random() * 100000),
+    //   description: "This is a sample item for testing."
+    // };
+    // const item = createItem(sample);
+    // db.get("items").push(item).write();
 
 
 
