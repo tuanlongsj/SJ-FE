@@ -1,14 +1,10 @@
-const mongoose = require("mongoose");
+// Item model helpers for lowdb
 
-const ItemSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true
-  },
-  description: {
-    type: String,
-    required: true
-  }
-});
+function createItem(data) {
+  return {
+    id: Date.now().toString(), // simple unique id
+    ...data,
+  };
+}
 
-module.exports = mongoose.model("Item", ItemSchema);
+module.exports = { createItem };

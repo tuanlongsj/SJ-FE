@@ -1,70 +1,52 @@
 const express = require("express");
-const router = express.Router();
-const Item = require("../models/Item");
+const { createItem } = require("../models/Item");
 
-// CREATE
-router.post("/", async (req, res) => {
-  try {
-    const item = await Item.create(req.body);
-    res.json(item);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
+module.exports = (db) => {
+  const router = express.Router();
 
-// READ ALL
-router.get("/", async (req, res) => {
-  try {
-      let items = await Item.find();
+  // Get all items
+  router.get("/", (req, res) => {
+    // Generate a random sample item
+    const sample = {
+      name: "Sample Item " + Math.floor(Math.random() * 100000),
+      description: "This is a sample item for testing."
+    };
+    const item = createItem(sample);
+    db.get("items").push(item).write();
 
-    //   // Generate a random sample item
-    //   const sample = {
-    //     name: "Sample Item " + Math.floor(Math.random() * 100000),
-    //     description: "This is a sample item for testing."
-    //   };
-    //   const createdItem = await Item.create(sample);
-    //   items = [createdItem];
 
+
+    const items = db.get("items").value();
     res.json(items);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
+  });
 
-console.log("Fetching all items");
+  // Add new item
+  router.post("/", (req, res) => {
+    const item = createItem(req.body);
+    db.get("items").push(item).write();
+    res.status(201).json(item);
+  });
 
-    const items = await Item.find();
-    res.json(items);
-});
-
-// READ ONE
-router.get("/:id", async (req, res) => {
-  try {
-    const item = await Item.findById(req.params.id);
-    if (!item) return res.status(404).json({ message: "Not found" });
+  // Get item by id
+  router.get("/:id", (req, res) => {
+    const item = db.get("items").find({ id: req.params.id }).value();
+    if (!item) return res.status(404).json({ error: "Item not found" });
     res.json(item);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
+  });
 
-// UPDATE
-router.put("/:id", async (req, res) => {
-  try {
-    const item = await Item.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  // Update item by id
+  router.put("/:id", (req, res) => {
+    const item = db.get("items").find({ id: req.params.id }).assign(req.body).write();
+    if (!item) return res.status(404).json({ error: "Item not found" });
     res.json(item);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
+  });
 
-// DELETE
-router.delete("/:id", async (req, res) => {
-  try {
-    await Item.findByIdAndDelete(req.params.id);
-    res.json({ message: "Deleted successfully" });
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
+  // Delete item by id
+  router.delete("/:id", (req, res) => {
+    const item = db.get("items").remove({ id: req.params.id }).write();
+    if (!item || item.length === 0) return res.status(404).json({ error: "Item not found" });
+    res.json(item[0]);
+  });
 
-module.exports = router;
+  return router;
+};
